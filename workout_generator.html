@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Workout Generator MVP</title>
+  <style>
+    :root {
+      --bg: #f6f4ef;
+      --card: #ffffff;
+      --text: #1f2933;
+      --muted: #7b817d;
+      --border: #e5e0d8;
+      --accent: #1f2933;
+      --accent-soft: #ede9e1;
+      --danger: #9f2a2a;
+      --radius: 18px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.45;
+    }
+
+    .app {
+      width: min(100%, 720px);
+      margin: 0 auto;
+      padding: 20px 14px 40px;
+    }
+
+    header {
+      margin-bottom: 20px;
+    }
+
+    h1 {
+      font-size: 1.85rem;
+      margin: 0 0 6px;
+      letter-spacing: -0.04em;
+    }
+
+    h2 {
+      font-size: 1.25rem;
+      margin: 0 0 12px;
+      letter-spacing: -0.02em;
+    }
+
+    h3 {
+      margin: 0 0 6px;
+      font-size: 1.05rem;
+    }
+
+    p { margin: 0; }
+
+    .muted {
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .last {
+      color: var(--muted);
+      font-size: 0.9rem;
+      font-style: italic;
+      margin-top: 4px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+      box-shadow: 0 10px 30px rgba(31, 41, 51, 0.05);
+      margin-bottom: 14px;
+    }
+
+    .workout-grid {
+      display: grid;
+      gap: 12px;
+    }
+
+    button {
+      border: 0;
+      border-radius: 14px;
+      padding: 14px 16px;
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+      background: var(--accent);
+      color: white;
+      min-height: 48px;
+    }
+
+    button.secondary {
+      background: var(--accent-soft);
+      color: var(--text);
+    }
+
+    button.ghost {
+      background: transparent;
+      color: var(--muted);
+      border: 1px solid var(--border);
+    }
+
+    button.danger {
+      background: #f4e4e4;
+      color: var(--danger);
+    }
+
+    .choice-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .exercise-card {
+      padding: 16px;
+    }
+
+    .block-label {
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      color: var(--muted);
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      margin: 18px 0 8px;
+    }
+
+    .prescription {
+      font-size: 1.3rem;
+      font-weight: 800;
+      margin-top: 10px;
+    }
+
+    .note {
+      background: var(--accent-soft);
+      border-radius: 12px;
+      padding: 10px 12px;
+      margin-top: 10px;
+      color: #4b5563;
+      font-size: 0.92rem;
+    }
+
+    .sets {
+      display: grid;
+      gap: 8px;
+      margin-top: 14px;
+    }
+
+    .set-row {
+      display: grid;
+      grid-template-columns: 52px 1fr 1fr;
+      gap: 8px;
+      align-items: center;
+    }
+
+    label {
+      font-weight: 700;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    input {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px;
+      font: inherit;
+      font-size: 1rem;
+      background: #fffdf9;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .topbar button {
+      min-height: auto;
+      padding: 9px 12px;
+      font-size: 0.9rem;
+    }
+
+    .hidden { display: none; }
+
+    .summary-list {
+      display: grid;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .summary-item {
+      background: #fffdf9;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 12px;
+    }
+
+    .footer-actions {
+      display: grid;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    @media (min-width: 640px) {
+      .workout-grid { grid-template-columns: repeat(3, 1fr); }
+      .footer-actions { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header>
+      <h1>Workout Generator</h1>
+      <p class="muted">Pick a workout, follow the prescription, then choose Move Up or Maintain for each exercise.</p>
+    </header>
+
+    <section id="homeScreen">
+      <div class="card">
+        <h2>Choose today's workout</h2>
+        <div class="workout-grid" id="workoutButtons"></div>
+      </div>
+      <button class="danger" id="resetDataBtn">Reset all saved data</button>
+    </section>
+
+    <section id="workoutScreen" class="hidden">
+      <div class="topbar">
+        <button class="ghost" id="backBtn">← Back</button>
+      </div>
+      <div id="workoutContent"></div>
+    </section>
+
+    <section id="finishScreen" class="hidden">
+      <div class="card">
+        <h2>Workout saved</h2>
+        <p class="muted">Your next prescriptions have been updated on this device.</p>
+        <div class="summary-list" id="finishSummary"></div>
+        <div class="footer-actions">
+          <button id="homeBtn">Back home</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const STORAGE_KEY = "workoutGeneratorMvp.v1";
+
+    const EXERCISES = {
+      bench_press: { name: "Bench Press", sets: 3, min: 5, max: 8, increment: 5, type: "load" },
+      squat: { name: "Squat", sets: 3, min: 5, max: 8, increment: 10, type: "load" },
+      deadlift: { name: "Deadlift", sets: 3, min: 5, max: 8, increment: 10, type: "load" },
+
+      incline_db_press: { name: "Incline DB Press", sets: 3, min: 8, max: 12, increment: 5, type: "load" },
+      one_arm_db_row: { name: "One-Arm DB Row", sets: 3, min: 8, max: 12, increment: 5, type: "load" },
+      lateral_raise: { name: "Lateral Raise", sets: 3, min: 10, max: 15, increment: 2.5, type: "load" },
+      cable_tricep_pushdown: { name: "Cable Tricep Pushdown", sets: 3, min: 10, max: 15, increment: 5, type: "load" },
+
+      good_morning: { name: "Good Morning", sets: 3, min: 8, max: 12, increment: 5, type: "load" },
+      cable_crunch: { name: "Cable Crunch", sets: 3, min: 10, max: 15, increment: 5, type: "load" },
+      standing_calf_raise: { name: "Standing Calf Raise", sets: 3, min: 10, max: 15, increment: 5, type: "load" },
+
+      pull_up: { name: "Pull-Up", sets: 3, min: 5, max: 8, increment: 0, type: "setup", setupLabel: "Band / setup" },
+      band_face_pull: { name: "Band Face Pull", sets: 3, min: 10, max: 15, increment: 0, type: "setup", setupLabel: "Band / setup" },
+      db_shrug: { name: "DB Shrug", sets: 3, min: 8, max: 12, increment: 5, type: "load" },
+      db_bicep_curl: { name: "DB Bicep Curl", sets: 3, min: 8, max: 12, increment: 5, type: "load" }
+    };
+
+    const WORKOUTS = [
+      {
+        id: "bench",
+        name: "Bench Day",
+        blocks: [
+          { label: "Main Lift", exercises: ["bench_press"] },
+          { label: "Superset A", exercises: ["incline_db_press", "one_arm_db_row"] },
+          { label: "Superset B", exercises: ["lateral_raise", "cable_tricep_pushdown"] }
+        ]
+      },
+      {
+        id: "squat",
+        name: "Squat Day",
+        blocks: [
+          { label: "Main Lift", exercises: ["squat"] },
+          { label: "Accessory Circuit", exercises: ["good_morning", "cable_crunch", "standing_calf_raise"] }
+        ]
+      },
+      {
+        id: "deadlift",
+        name: "Deadlift Day",
+        blocks: [
+          { label: "Main Lift", exercises: ["deadlift"] },
+          { label: "Superset A", exercises: ["pull_up", "band_face_pull"] },
+          { label: "Superset B", exercises: ["db_shrug", "db_bicep_curl"] }
+        ]
+      }
+    ];
+
+    let state = loadState();
+    let activeWorkoutId = null;
+
+    function defaultState() {
+      return { exercises: {} };
+    }
+
+    function loadState() {
+      try {
+        return JSON.parse(localStorage.getItem(STORAGE_KEY)) || defaultState();
+      } catch {
+        return defaultState();
+      }
+    }
+
+    function saveState() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    }
+
+    function getExerciseState(id) {
+      const config = EXERCISES[id];
+      if (!state.exercises[id]) {
+        state.exercises[id] = {
+          targetWeight: "",
+          targetSetup: "",
+          targetReps: Array(config.sets).fill(config.min),
+          history: []
+        };
+      }
+      return state.exercises[id];
+    }
+
+    function formatLoad(exerciseId, value, setup) {
+      const config = EXERCISES[exerciseId];
+      if (config.type === "setup") return setup || "choose setup";
+      return value === "" || value === null || Number.isNaN(Number(value)) ? "choose weight" : `${value} lb`;
+    }
+
+    function formatReps(reps) {
+      return reps.join(", ");
+    }
+
+    function lastWorkoutText(exerciseId) {
+      const record = getExerciseState(exerciseId).history.at(-1);
+      if (!record) return "Last time: no data yet";
+      const load = EXERCISES[exerciseId].type === "setup" ? record.setup || "setup not noted" : `${record.weight} lb`;
+      return `Last time: ${load} × ${formatReps(record.reps)}`;
+    }
+
+    function nextReps(reps, max) {
+      const next = Math.min(Math.min(...reps) + 1, max);
+      return reps.map(() => next);
+    }
+
+    function allAtMax(reps, max) {
+      return reps.every(rep => rep >= max);
+    }
+
+    function applyDecision(exerciseId, log, decision) {
+      const config = EXERCISES[exerciseId];
+      const exState = getExerciseState(exerciseId);
+
+      exState.history.push({
+        date: new Date().toISOString(),
+        weight: log.weight,
+        setup: log.setup,
+        reps: log.reps,
+        decision
+      });
+
+      if (decision === "maintain") {
+        exState.targetWeight = log.weight;
+        exState.targetSetup = log.setup;
+        return;
+      }
+
+      if (allAtMax(exState.targetReps, config.max)) {
+        if (config.type === "load") {
+          const currentWeight = Number(log.weight || exState.targetWeight || 0);
+          exState.targetWeight = currentWeight ? currentWeight + config.increment : "";
+        } else {
+          exState.targetSetup = log.setup;
+        }
+        exState.targetReps = Array(config.sets).fill(config.min);
+      } else {
+        exState.targetWeight = log.weight;
+        exState.targetSetup = log.setup;
+        exState.targetReps = nextReps(exState.targetReps, config.max);
+      }
+    }
+
+    function renderHome() {
+      showScreen("homeScreen");
+      const container = document.getElementById("workoutButtons");
+      container.innerHTML = "";
+
+      WORKOUTS.forEach(workout => {
+        const btn = document.createElement("button");
+        btn.textContent = workout.name;
+        btn.onclick = () => startWorkout(workout.id);
+        container.appendChild(btn);
+      });
+    }
+
+    function startWorkout(workoutId) {
+      activeWorkoutId = workoutId;
+      renderWorkout();
+    }
+
+    function renderWorkout() {
+      showScreen("workoutScreen");
+      const workout = WORKOUTS.find(w => w.id === activeWorkoutId);
+      const container = document.getElementById("workoutContent");
+      container.innerHTML = `<div class="card"><h2>${workout.name}</h2><p class="muted">Log your actual sets, then choose what should happen next time.</p></div>`;
+
+      workout.blocks.forEach(block => {
+        const label = document.createElement("div");
+        label.className = "block-label";
+        label.textContent = block.label;
+        container.appendChild(label);
+
+        block.exercises.forEach(exerciseId => {
+          container.appendChild(renderExerciseCard(exerciseId));
+        });
+      });
+    }
+
+    function renderExerciseCard(exerciseId) {
+      const config = EXERCISES[exerciseId];
+      const exState = getExerciseState(exerciseId);
+      const card = document.createElement("div");
+      card.className = "card exercise-card";
+      card.dataset.exerciseId = exerciseId;
+
+      const currentLoad = formatLoad(exerciseId, exState.targetWeight, exState.targetSetup);
+      const inputLabel = config.type === "setup" ? config.setupLabel : "Weight";
+      const inputType = config.type === "setup" ? "text" : "number";
+      const inputStep = config.increment === 2.5 ? "2.5" : "5";
+
+      card.innerHTML = `
+        <h3>${config.name}</h3>
+        <p class="last">${lastWorkoutText(exerciseId)}</p>
+        <p class="prescription">Today: ${currentLoad} × ${formatReps(exState.targetReps)}</p>
+        ${config.type === "setup" ? `<p class="note">Use the setup field to track band, assistance, or difficulty. At the top of the range, make the setup harder manually.</p>` : ""}
+        <div class="sets">
+          ${Array.from({ length: config.sets }).map((_, index) => `
+            <div class="set-row">
+              <label>Set ${index + 1}</label>
+              <input class="load-input" type="${inputType}" step="${inputStep}" placeholder="${inputLabel}" value="${config.type === "setup" ? exState.targetSetup : exState.targetWeight}" />
+              <input class="rep-input" type="number" inputmode="numeric" min="0" placeholder="Reps" value="${exState.targetReps[index]}" />
+            </div>
+          `).join("")}
+        </div>
+        <div class="choice-row">
+          <button class="secondary maintain-btn">Maintain</button>
+          <button class="move-up-btn">Move Up</button>
+        </div>
+      `;
+
+      card.querySelector(".maintain-btn").onclick = () => saveExercise(card, "maintain");
+      card.querySelector(".move-up-btn").onclick = () => saveExercise(card, "move_up");
+      return card;
+    }
+
+    function saveExercise(card, decision) {
+      const exerciseId = card.dataset.exerciseId;
+      const config = EXERCISES[exerciseId];
+      const loadInputs = [...card.querySelectorAll(".load-input")];
+      const repInputs = [...card.querySelectorAll(".rep-input")];
+      const firstLoad = loadInputs[0].value.trim();
+
+      const log = {
+        weight: config.type === "load" ? Number(firstLoad || 0) : "",
+        setup: config.type === "setup" ? firstLoad : "",
+        reps: repInputs.map(input => Number(input.value || 0))
+      };
+
+      if (config.type === "load" && !log.weight) {
+        alert("Enter a weight before saving this exercise.");
+        return;
+      }
+
+      if (config.type === "setup" && !log.setup) {
+        alert("Enter your band/setup before saving this exercise.");
+        return;
+      }
+
+      applyDecision(exerciseId, log, decision);
+      saveState();
+
+      card.style.opacity = "0.65";
+      card.querySelectorAll("button").forEach(btn => btn.disabled = true);
+      const saved = document.createElement("p");
+      saved.className = "note";
+      saved.textContent = decision === "move_up" ? "Saved: move up next time." : "Saved: maintain this exact prescription next time.";
+      card.appendChild(saved);
+
+      // Auto-finish when every exercise card has been decided
+      const allCards = document.querySelectorAll("#workoutContent .exercise-card");
+      const allDone = [...allCards].every(c => c.style.opacity === "0.65");
+      if (allDone) {
+        setTimeout(finishWorkout, 600);
+      }
+    }
+
+    function finishWorkout() {
+      const workout = WORKOUTS.find(w => w.id === activeWorkoutId);
+      const summary = document.getElementById("finishSummary");
+      summary.innerHTML = "";
+
+      workout.blocks.flatMap(b => b.exercises).forEach(exerciseId => {
+        const config = EXERCISES[exerciseId];
+        const exState = getExerciseState(exerciseId);
+        const item = document.createElement("div");
+        item.className = "summary-item";
+        item.innerHTML = `
+          <strong>${config.name}</strong>
+          <p class="last">Next: ${formatLoad(exerciseId, exState.targetWeight, exState.targetSetup)} × ${formatReps(exState.targetReps)}</p>
+        `;
+        summary.appendChild(item);
+      });
+
+      showScreen("finishScreen");
+    }
+
+    function showScreen(id) {
+      ["homeScreen", "workoutScreen", "finishScreen"].forEach(screenId => {
+        document.getElementById(screenId).classList.toggle("hidden", screenId !== id);
+      });
+    }
+
+    document.getElementById("backBtn").onclick = renderHome;
+    document.getElementById("homeBtn").onclick = renderHome;
+    document.getElementById("resetDataBtn").onclick = () => {
+      if (confirm("Reset all saved workout data on this device?")) {
+        localStorage.removeItem(STORAGE_KEY);
+        state = defaultState();
+        renderHome();
+      }
+    };
+
+    renderHome();
+  </script>
+</body>
+</html>
