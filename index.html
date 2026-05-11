@@ -4,61 +4,108 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Workout Generator MVP</title>
+  <title>Workout Generator — Doodle Style</title>
+  <meta name="description" content="A playful, hand-drawn workout generator to track your lifts and progress." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Delius+Swash+Caps&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <script src="https://unpkg.com/@phosphor-icons/web@2.1.1"></script>
   <style>
+    /* ── Doodle Design Tokens ── */
     :root {
-      --bg: #f6f4ef;
-      --card: #ffffff;
-      --text: #1f2933;
-      --muted: #7b817d;
-      --border: #e5e0d8;
-      --accent: #1f2933;
-      --accent-soft: #ede9e1;
-      --danger: #9f2a2a;
+      --primary: #C4923E;
+      --primary-light: #e8d5b0;
+      --secondary: #2C2C2C;
+      --success: #2D8A4E;
+      --warning: #D97706;
+      --danger: #C53030;
+      --surface: #FFFFFF;
+      --text: #2C2C2C;
+      --muted: #71706e;
+      --bg: #E8E4DE;
+      --border: #c5bfb6;
+      --accent-soft: #f0ece6;
       --radius: 18px;
+      --font-primary: 'Delius Swash Caps', cursive;
+      --font-mono: 'JetBrains Mono', monospace;
+      --shadow-sketch: 3px 3px 0px rgba(44, 44, 44, 0.15);
+      --shadow-hover: 4px 4px 0px rgba(44, 44, 44, 0.22);
     }
 
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
-      margin: 0;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-family: var(--font-primary);
       background: var(--bg);
       color: var(--text);
-      line-height: 1.45;
+      line-height: 1.55;
+      min-height: 100vh;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    /* ── Doodle background pattern ── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        radial-gradient(circle, var(--primary-light) 1px, transparent 1px),
+        radial-gradient(circle, var(--border) 0.5px, transparent 0.5px);
+      background-size: 40px 40px, 20px 20px;
+      background-position: 0 0, 10px 10px;
+      opacity: 0.2;
+      pointer-events: none;
+      z-index: 0;
     }
 
     .app {
+      position: relative;
+      z-index: 1;
       width: min(100%, 720px);
       margin: 0 auto;
-      padding: 20px 14px 40px;
+      padding: 24px 16px 48px;
     }
 
+    /* ── Header ── */
     header {
-      margin-bottom: 20px;
+      margin-bottom: 24px;
+      text-align: center;
     }
 
     h1 {
-      font-size: 1.85rem;
-      margin: 0 0 6px;
-      letter-spacing: -0.04em;
+      font-family: var(--font-primary);
+      font-size: 2.2rem;
+      color: var(--secondary);
+      margin-bottom: 8px;
+      position: relative;
+      display: inline-block;
+    }
+
+    h1::after {
+      content: '';
+      position: absolute;
+      left: -8px;
+      right: -8px;
+      bottom: -2px;
+      height: 4px;
+      background: var(--primary);
+      border-radius: 4px;
+      transform: rotate(-0.8deg);
     }
 
     h2 {
-      font-size: 1.25rem;
-      margin: 0 0 12px;
-      letter-spacing: -0.02em;
+      font-family: var(--font-primary);
+      font-size: 1.3rem;
+      color: var(--secondary);
+      margin-bottom: 12px;
     }
 
     h3 {
-      margin: 0 0 6px;
-      font-size: 1.05rem;
-    }
-
-    p {
-      margin: 0;
+      font-family: var(--font-primary);
+      font-size: 1.1rem;
+      color: var(--secondary);
+      margin-bottom: 4px;
     }
 
     .muted {
@@ -68,88 +115,160 @@
 
     .last {
       color: var(--muted);
-      font-size: 0.9rem;
+      font-size: 0.88rem;
       font-style: italic;
       margin-top: 4px;
     }
 
+    /* ── Cards with sketch border ── */
     .card {
-      background: var(--card);
-      border: 1px solid var(--border);
+      background: var(--surface);
+      border: 2.5px solid var(--secondary);
       border-radius: var(--radius);
       padding: 16px;
-      box-shadow: 0 10px 30px rgba(31, 41, 51, 0.05);
-      margin-bottom: 14px;
+      box-shadow: var(--shadow-sketch);
+      margin-bottom: 16px;
+      position: relative;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
     }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      top: -3px; left: -3px; right: -3px; bottom: -3px;
+      border: 1.5px dashed var(--primary);
+      border-radius: 22px;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+      pointer-events: none;
+    }
+
+    .card:hover::before { opacity: 0.5; }
 
     .workout-grid {
       display: grid;
       gap: 12px;
     }
 
+    /* ── Buttons ── */
     button {
-      border: 0;
+      font-family: var(--font-primary);
+      border: 2.5px solid var(--primary);
       border-radius: 14px;
       padding: 14px 16px;
-      font: inherit;
-      font-weight: 700;
+      font-size: 1rem;
+      font-weight: 400;
       cursor: pointer;
-      background: var(--accent);
-      color: white;
+      background: var(--primary);
+      color: var(--bg);
       min-height: 48px;
+      box-shadow: var(--shadow-sketch);
+      transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.15s ease;
+      position: relative;
+    }
+
+    button:hover:not(:disabled) {
+      transform: translate(-1px, -1px);
+      box-shadow: var(--shadow-hover);
+    }
+
+    button:active:not(:disabled) {
+      transform: translate(2px, 2px);
+      box-shadow: 1px 1px 0px rgba(0, 0, 0, 0.3);
+    }
+
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    button:focus-visible {
+      outline: 3px solid var(--primary);
+      outline-offset: 3px;
     }
 
     button.secondary {
       background: var(--accent-soft);
-      color: var(--text);
+      color: var(--secondary);
+      border-color: var(--border);
     }
 
     button.ghost {
       background: transparent;
-      color: var(--muted);
-      border: 1px solid var(--border);
+      color: var(--secondary);
+      border: 2px dashed var(--border);
+      box-shadow: none;
+    }
+
+    button.ghost:hover:not(:disabled) {
+      background: var(--accent-soft);
+      border-color: var(--primary);
     }
 
     button.danger {
-      background: #f4e4e4;
+      background: #f9e5e5;
       color: var(--danger);
+      border-color: var(--danger);
+      box-shadow: 2px 2px 0px rgba(197, 48, 48, 0.12);
+    }
+
+    button.danger:hover:not(:disabled) {
+      background: #f0cece;
     }
 
     .choice-row {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 10px;
-      margin-top: 12px;
+      margin-top: 16px;
     }
 
-    .exercise-card {
-      padding: 16px;
-    }
+    /* ── Exercise Cards ── */
+    .exercise-card { padding: 16px; }
 
     .block-label {
-      font-size: 0.78rem;
+      font-family: var(--font-primary);
+      font-size: 0.82rem;
       text-transform: uppercase;
-      color: var(--muted);
-      font-weight: 800;
-      letter-spacing: 0.08em;
-      margin: 18px 0 8px;
+      color: var(--primary);
+      font-weight: 400;
+      letter-spacing: 0.1em;
+      margin: 24px 0 8px;
+      position: relative;
+      padding-left: 20px;
+    }
+
+    .block-label::before {
+      content: '✦';
+      position: absolute;
+      left: 0;
+      font-size: 0.9rem;
     }
 
     .prescription {
-      font-size: 1.3rem;
-      font-weight: 800;
+      font-family: var(--font-mono);
+      font-size: 1.15rem;
+      font-weight: 700;
       margin-top: 10px;
+      color: var(--secondary);
+      background: var(--accent-soft);
+      padding: 8px 12px;
+      border-radius: 12px;
+      border: 1.5px dashed var(--border);
+      display: inline-block;
     }
 
     .note {
       background: var(--accent-soft);
+      border: 1.5px dashed var(--border);
       border-radius: 12px;
       padding: 10px 12px;
       margin-top: 10px;
-      color: #4b5563;
-      font-size: 0.92rem;
+      color: var(--muted);
+      font-size: 0.9rem;
     }
 
+    /* ── Sets / Inputs ── */
     .sets {
       display: grid;
       gap: 8px;
@@ -164,39 +283,48 @@
     }
 
     label {
-      font-weight: 700;
+      font-family: var(--font-primary);
+      font-weight: 400;
       color: var(--muted);
       font-size: 0.9rem;
     }
 
     input {
+      font-family: var(--font-mono);
       width: 100%;
-      border: 1px solid var(--border);
+      border: 2px solid var(--border);
       border-radius: 12px;
-      padding: 12px;
-      font: inherit;
-      font-size: 1rem;
-      background: #fffdf9;
+      padding: 10px 12px;
+      font-size: 0.95rem;
+      background: #faf8f5;
+      color: var(--text);
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
     }
 
+    input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(196, 146, 62, 0.25);
+    }
+
+    /* ── Top Bar ── */
     .topbar {
       display: flex;
       justify-content: space-between;
       align-items: center;
       gap: 10px;
-      margin-bottom: 12px;
+      margin-bottom: 16px;
     }
 
     .topbar button {
       min-height: auto;
-      padding: 9px 12px;
+      padding: 9px 14px;
       font-size: 0.9rem;
     }
 
-    .hidden {
-      display: none;
-    }
+    .hidden { display: none; }
 
+    /* ── Summary / Finish ── */
     .summary-list {
       display: grid;
       gap: 10px;
@@ -204,10 +332,15 @@
     }
 
     .summary-item {
-      background: #fffdf9;
-      border: 1px solid var(--border);
+      background: var(--accent-soft);
+      border: 2px solid var(--border);
       border-radius: 14px;
       padding: 12px;
+      box-shadow: 2px 2px 0px rgba(0, 0, 0, 0.15);
+    }
+
+    .summary-item strong {
+      color: var(--secondary);
     }
 
     .footer-actions {
@@ -216,14 +349,84 @@
       margin-top: 16px;
     }
 
-    @media (min-width: 640px) {
-      .workout-grid {
-        grid-template-columns: repeat(3, 1fr);
-      }
+    /* ── Doodle decorative squiggles ── */
+    .doodle-divider {
+      text-align: center;
+      margin: 16px 0;
+      color: var(--primary-light);
+      font-size: 1.2rem;
+      letter-spacing: 0.3em;
+      user-select: none;
+    }
 
-      .footer-actions {
-        grid-template-columns: 1fr 1fr;
-      }
+    /* ── Saved state animation ── */
+    @keyframes checkmark-pop {
+      0% { transform: scale(0); opacity: 0; }
+      60% { transform: scale(1.2); }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    .saved-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #e0f5e5;
+      color: var(--success);
+      border: 2px solid var(--success);
+      border-radius: 10px;
+      padding: 6px 12px;
+      margin-top: 12px;
+      font-size: 0.9rem;
+      animation: checkmark-pop 0.35s ease forwards;
+    }
+
+    .saved-badge i {
+      font-size: 1.1rem;
+    }
+
+    /* ── Icon helpers ── */
+    .btn-icon {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      justify-content: center;
+    }
+
+    .btn-icon i {
+      font-size: 1.2em;
+    }
+
+    .exercise-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .exercise-title i {
+      color: var(--primary);
+      font-size: 1.2rem;
+    }
+
+    /* ── Responsive ── */
+    @media (min-width: 640px) {
+      .workout-grid { grid-template-columns: repeat(3, 1fr); }
+      .footer-actions { grid-template-columns: 1fr 1fr; }
+    }
+
+    /* ── Card entrance animation ── */
+    @keyframes card-enter {
+      from { opacity: 0; transform: translateY(12px) rotate(-0.5deg); }
+      to { opacity: 1; transform: translateY(0) rotate(0deg); }
+    }
+
+    .card { animation: card-enter 0.35s ease forwards; }
+
+    .exercise-card:nth-child(odd) {
+      transform: rotate(-0.3deg);
+    }
+
+    .exercise-card:nth-child(even) {
+      transform: rotate(0.3deg);
     }
   </style>
 </head>
@@ -231,7 +434,7 @@
 <body>
   <main class="app">
     <header>
-      <h1>Workout Generator</h1>
+      <h1><i class="ph-thin ph-barbell" style="vertical-align: middle; margin-right: 4px;"></i> Workout Generator</h1>
       <p class="muted">Pick a workout, follow the prescription, then choose Move Up or Maintain for each exercise.</p>
     </header>
 
@@ -240,23 +443,24 @@
         <h2>Choose today's workout</h2>
         <div class="workout-grid" id="workoutButtons"></div>
       </div>
-      <button class="danger" id="resetDataBtn">Reset all saved data</button>
+      <div class="doodle-divider">~ ~ ~ ~ ~</div>
+      <button class="danger btn-icon" id="resetDataBtn"><i class="ph-thin ph-trash"></i> Reset all saved data</button>
     </section>
 
     <section id="workoutScreen" class="hidden">
       <div class="topbar">
-        <button class="ghost" id="backBtn">← Back</button>
+        <button class="ghost btn-icon" id="backBtn"><i class="ph-thin ph-arrow-left"></i> Back</button>
       </div>
       <div id="workoutContent"></div>
     </section>
 
     <section id="finishScreen" class="hidden">
       <div class="card">
-        <h2>Workout saved</h2>
+        <h2><i class="ph-thin ph-check-circle" style="color: var(--success); vertical-align: middle;"></i> Workout saved</h2>
         <p class="muted">Your next prescriptions have been updated on this device.</p>
         <div class="summary-list" id="finishSummary"></div>
         <div class="footer-actions">
-          <button id="homeBtn">Back home</button>
+          <button class="btn-icon" id="homeBtn"><i class="ph-thin ph-house"></i> Back home</button>
         </div>
       </div>
     </section>
@@ -289,6 +493,7 @@
       {
         id: "bench",
         name: "Bench Day",
+        icon: "ph-thin ph-barbell",
         blocks: [
           { label: "Main Lift", exercises: ["bench_press"] },
           { label: "Superset A", exercises: ["incline_db_press", "one_arm_db_row"] },
@@ -298,6 +503,7 @@
       {
         id: "squat",
         name: "Squat Day",
+        icon: "ph-thin ph-person-simple-walk",
         blocks: [
           { label: "Main Lift", exercises: ["squat"] },
           { label: "Accessory Circuit", exercises: ["good_morning", "cable_crunch", "standing_calf_raise"] }
@@ -306,6 +512,7 @@
       {
         id: "deadlift",
         name: "Deadlift Day",
+        icon: "ph-thin ph-lightning",
         blocks: [
           { label: "Main Lift", exercises: ["deadlift"] },
           { label: "Superset A", exercises: ["pull_up", "band_face_pull"] },
@@ -412,7 +619,8 @@
 
       WORKOUTS.forEach(workout => {
         const btn = document.createElement("button");
-        btn.textContent = workout.name;
+        btn.className = "btn-icon";
+        btn.innerHTML = `<i class="${workout.icon}"></i> ${workout.name}`;
         btn.onclick = () => startWorkout(workout.id);
         container.appendChild(btn);
       });
@@ -427,7 +635,7 @@
       showScreen("workoutScreen");
       const workout = WORKOUTS.find(w => w.id === activeWorkoutId);
       const container = document.getElementById("workoutContent");
-      container.innerHTML = `<div class="card"><h2>${workout.name}</h2><p class="muted">Log your actual sets, then choose what should happen next time.</p></div>`;
+      container.innerHTML = `<div class="card"><h2><i class="${workout.icon}" style="vertical-align: middle; margin-right: 4px;"></i> ${workout.name}</h2><p class="muted">Log your actual sets, then choose what should happen next time.</p></div>`;
 
       workout.blocks.forEach(block => {
         const label = document.createElement("div");
@@ -454,10 +662,10 @@
       const inputStep = config.increment === 2.5 ? "2.5" : "5";
 
       card.innerHTML = `
-        <h3>${config.name}</h3>
-        <p class="last">${lastWorkoutText(exerciseId)}</p>
-        <p class="prescription">Today: ${currentLoad} × ${formatReps(exState.targetReps)}</p>
-        ${config.type === "setup" ? `<p class="note">Use the setup field to track band, assistance, or difficulty. At the top of the range, make the setup harder manually.</p>` : ""}
+        <h3 class="exercise-title"><i class="ph-thin ph-barbell"></i> ${config.name}</h3>
+        <p class="last"><i class="ph-thin ph-clock-counter-clockwise" style="vertical-align: middle;"></i> ${lastWorkoutText(exerciseId)}</p>
+        <p class="prescription"><i class="ph-thin ph-target" style="vertical-align: middle;"></i> Today: ${currentLoad} × ${formatReps(exState.targetReps)}</p>
+        ${config.type === "setup" ? `<p class="note"><i class="ph-thin ph-info" style="vertical-align: middle;"></i> Use the setup field to track band, assistance, or difficulty. At the top of the range, make the setup harder manually.</p>` : ""}
         <div class="sets">
           ${Array.from({ length: config.sets }).map((_, index) => `
             <div class="set-row">
@@ -468,8 +676,8 @@
           `).join("")}
         </div>
         <div class="choice-row">
-          <button class="secondary maintain-btn">Maintain</button>
-          <button class="move-up-btn">Move Up</button>
+          <button class="secondary maintain-btn btn-icon"><i class="ph-thin ph-equals"></i> Maintain</button>
+          <button class="move-up-btn btn-icon"><i class="ph-thin ph-trend-up"></i> Move Up</button>
         </div>
       `;
 
@@ -506,9 +714,9 @@
 
       card.style.opacity = "0.65";
       card.querySelectorAll("button").forEach(btn => btn.disabled = true);
-      const saved = document.createElement("p");
-      saved.className = "note";
-      saved.textContent = decision === "move_up" ? "Saved: move up next time." : "Saved: maintain this exact prescription next time.";
+      const saved = document.createElement("div");
+      saved.className = "saved-badge";
+      saved.innerHTML = decision === "move_up" ? '<i class="ph-thin ph-check-circle"></i> Saved — moving up next time' : '<i class="ph-thin ph-check-circle"></i> Saved — maintaining prescription';
       card.appendChild(saved);
 
       // Auto-finish when every exercise card has been decided
@@ -530,8 +738,8 @@
         const item = document.createElement("div");
         item.className = "summary-item";
         item.innerHTML = `
-          <strong>${config.name}</strong>
-          <p class="last">Next: ${formatLoad(exerciseId, exState.targetWeight, exState.targetSetup)} × ${formatReps(exState.targetReps)}</p>
+          <strong><i class="ph-thin ph-barbell" style="vertical-align: middle; margin-right: 4px;"></i> ${config.name}</strong>
+          <p class="last"><i class="ph-thin ph-arrow-right" style="vertical-align: middle;"></i> Next: ${formatLoad(exerciseId, exState.targetWeight, exState.targetSetup)} × ${formatReps(exState.targetReps)}</p>
         `;
         summary.appendChild(item);
       });
