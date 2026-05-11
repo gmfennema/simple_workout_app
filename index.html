@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -17,7 +18,9 @@
       --radius: 18px;
     }
 
-    * { box-sizing: border-box; }
+    * {
+      box-sizing: border-box;
+    }
 
     body {
       margin: 0;
@@ -54,7 +57,9 @@
       font-size: 1.05rem;
     }
 
-    p { margin: 0; }
+    p {
+      margin: 0;
+    }
 
     .muted {
       color: var(--muted);
@@ -188,7 +193,9 @@
       font-size: 0.9rem;
     }
 
-    .hidden { display: none; }
+    .hidden {
+      display: none;
+    }
 
     .summary-list {
       display: grid;
@@ -210,11 +217,17 @@
     }
 
     @media (min-width: 640px) {
-      .workout-grid { grid-template-columns: repeat(3, 1fr); }
-      .footer-actions { grid-template-columns: 1fr 1fr; }
+      .workout-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+
+      .footer-actions {
+        grid-template-columns: 1fr 1fr;
+      }
     }
   </style>
 </head>
+
 <body>
   <main class="app">
     <header>
@@ -545,4 +558,5 @@
     renderHome();
   </script>
 </body>
+
 </html>
